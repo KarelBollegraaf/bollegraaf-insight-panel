@@ -2,13 +2,17 @@ import { useState, useEffect } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { BaleMetrics } from "@/components/dashboard/BaleMetrics";
-import { MaterialBreakdown } from "@/components/dashboard/MaterialBreakdown";
 import { ProductionChart } from "@/components/dashboard/ProductionChart";
 import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
+import { BaleHistoryList, Bale } from "@/components/dashboard/BaleHistoryList";
+import { BaleDetailModal } from "@/components/dashboard/BaleDetailModal";
+import { CardboardStats } from "@/components/dashboard/CardboardStats";
 import { Package, TrendingUp, Activity, Gauge } from "lucide-react";
 
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedBale, setSelectedBale] = useState<Bale | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -17,22 +21,74 @@ const Index = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Simulated real-time data
+  const handleBaleClick = (bale: Bale) => {
+    setSelectedBale(bale);
+    setIsModalOpen(true);
+  };
+
+  // Simulated real-time data - Cardboard baler
   const productionData = [
-    { time: "08:00", balesPerHour: 45, tonsPerHour: 18 },
-    { time: "09:00", balesPerHour: 52, tonsPerHour: 21 },
-    { time: "10:00", balesPerHour: 48, tonsPerHour: 19 },
-    { time: "11:00", balesPerHour: 55, tonsPerHour: 22 },
-    { time: "12:00", balesPerHour: 42, tonsPerHour: 17 },
-    { time: "13:00", balesPerHour: 58, tonsPerHour: 23 },
-    { time: "14:00", balesPerHour: 51, tonsPerHour: 20 },
+    { time: "08:00", balesPerHour: 38, tonsPerHour: 15 },
+    { time: "09:00", balesPerHour: 42, tonsPerHour: 17 },
+    { time: "10:00", balesPerHour: 45, tonsPerHour: 18 },
+    { time: "11:00", balesPerHour: 41, tonsPerHour: 16 },
+    { time: "12:00", balesPerHour: 35, tonsPerHour: 14 },
+    { time: "13:00", balesPerHour: 48, tonsPerHour: 19 },
+    { time: "14:00", balesPerHour: 44, tonsPerHour: 18 },
   ];
 
-  const materials = [
-    { name: "Aluminum", count: 342, percentage: 35, color: "hsl(var(--chart-2))" },
-    { name: "Hard Plastics", count: 278, percentage: 28, color: "hsl(var(--primary))" },
-    { name: "Lightweight Plastics", count: 215, percentage: 22, color: "hsl(var(--chart-3))" },
-    { name: "Cardboard", count: 145, percentage: 15, color: "hsl(var(--chart-5))" },
+  // Recent bales history
+  const recentBales: Bale[] = [
+    {
+      id: "CB-1847",
+      timestamp: new Date(Date.now() - 300000),
+      length: 122,
+      width: 78,
+      height: 72,
+      weight: 392,
+      density: 445,
+      quality: "excellent",
+    },
+    {
+      id: "CB-1846",
+      timestamp: new Date(Date.now() - 900000),
+      length: 118,
+      width: 80,
+      height: 70,
+      weight: 378,
+      density: 428,
+      quality: "good",
+    },
+    {
+      id: "CB-1845",
+      timestamp: new Date(Date.now() - 1500000),
+      length: 115,
+      width: 79,
+      height: 73,
+      weight: 385,
+      density: 438,
+      quality: "good",
+    },
+    {
+      id: "CB-1844",
+      timestamp: new Date(Date.now() - 2100000),
+      length: 120,
+      width: 77,
+      height: 71,
+      weight: 368,
+      density: 415,
+      quality: "acceptable",
+    },
+    {
+      id: "CB-1843",
+      timestamp: new Date(Date.now() - 2700000),
+      length: 125,
+      width: 81,
+      height: 74,
+      weight: 405,
+      density: 455,
+      quality: "excellent",
+    },
   ];
 
   const alerts = [
@@ -51,17 +107,42 @@ const Index = () => {
   ];
 
   const currentBale = {
-    length: 120,
-    width: 80,
-    height: 75,
-    weight: 485,
-    density: 405,
+    length: 122,
+    width: 78,
+    height: 72,
+    weight: 392,
+    density: 445,
   };
 
-  const averages = {
+  // This baler's averages
+  const balerAverages = {
+    length: 120,
+    width: 79,
+    height: 72,
+    weight: 386,
+    density: 438,
+  };
+
+  // Fleet-wide averages for all cardboard balers
+  const fleetAverages = {
     length: 118,
-    weight: 478,
-    density: 398,
+    width: 80,
+    height: 71,
+    weight: 382,
+    density: 432,
+  };
+
+  const cardboardStats = {
+    thisBalerAverage: {
+      density: 438,
+      weight: 386,
+      dailyOutput: 425,
+    },
+    fleetAverage: {
+      density: 432,
+      weight: 382,
+      dailyOutput: 410,
+    },
   };
 
   return (
@@ -69,55 +150,81 @@ const Index = () => {
       <DashboardHeader systemStatus="running" lastUpdate={currentTime} />
 
       <main className="p-6 space-y-6 max-w-[1800px] mx-auto">
+        {/* Header Badge */}
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <Package className="h-6 w-6 text-primary" />
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Cardboard Baler - Unit #3</h2>
+              <p className="text-sm text-muted-foreground">Specialized cardboard compression system</p>
+            </div>
+          </div>
+        </div>
+
         {/* Key Metrics Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             title="Total Bales Today"
-            value={980}
+            value={425}
             icon={Package}
             variant="primary"
-            trend={{ value: 12, label: "vs yesterday" }}
+            trend={{ value: 8, label: "vs yesterday" }}
           />
           <MetricCard
             title="Production Rate"
-            value={51}
+            value={44}
             unit="bales/hr"
             icon={TrendingUp}
             variant="success"
-            trend={{ value: 8, label: "vs avg" }}
+            trend={{ value: 5, label: "vs avg" }}
           />
           <MetricCard
             title="Throughput"
-            value={20.4}
+            value={17.6}
             unit="tons/hr"
             icon={Activity}
             variant="default"
           />
           <MetricCard
             title="System Efficiency"
-            value={94}
+            value={96}
             unit="%"
             icon={Gauge}
             variant="success"
-            trend={{ value: 3, label: "vs last shift" }}
+            trend={{ value: 4, label: "vs last shift" }}
           />
         </div>
+
+        {/* Performance Comparison */}
+        <CardboardStats
+          thisBalerAverage={cardboardStats.thisBalerAverage}
+          fleetAverage={cardboardStats.fleetAverage}
+        />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - 2/3 width */}
           <div className="lg:col-span-2 space-y-6">
-            <BaleMetrics currentBale={currentBale} averages={averages} />
+            <BaleMetrics currentBale={currentBale} averages={balerAverages} />
             <ProductionChart data={productionData} />
           </div>
 
           {/* Right Column - 1/3 width */}
           <div className="space-y-6">
-            <MaterialBreakdown materials={materials} />
+            <BaleHistoryList bales={recentBales} onBaleClick={handleBaleClick} />
             <AlertsPanel alerts={alerts} />
           </div>
         </div>
       </main>
+
+      {/* Bale Detail Modal */}
+      <BaleDetailModal
+        bale={selectedBale}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        balerAverages={balerAverages}
+        allBalersAverages={fleetAverages}
+      />
     </div>
   );
 };
