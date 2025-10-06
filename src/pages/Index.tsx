@@ -7,6 +7,9 @@ import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
 import { BaleHistoryList, Bale } from "@/components/dashboard/BaleHistoryList";
 import { BaleDetailModal } from "@/components/dashboard/BaleDetailModal";
 import { CardboardStats } from "@/components/dashboard/CardboardStats";
+import { AllBalesView } from "@/components/dashboard/AllBalesView";
+import { StatisticsView } from "@/components/dashboard/StatisticsView";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, TrendingUp, Activity, Gauge } from "lucide-react";
 
 const Index = () => {
@@ -155,7 +158,7 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <Package className="h-6 w-6 text-primary" />
             <div>
-              <h2 className="text-lg font-bold text-foreground">Cardboard Baler - Unit #3</h2>
+              <h2 className="text-lg font-bold text-foreground">006988-Papierhandel Janssen-NL</h2>
               <p className="text-sm text-muted-foreground">Specialized cardboard compression system</p>
             </div>
           </div>
@@ -201,20 +204,38 @@ const Index = () => {
           fleetAverage={cardboardStats.fleetAverage}
         />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - 2/3 width */}
-          <div className="lg:col-span-2 space-y-6">
-            <BaleMetrics currentBale={currentBale} averages={balerAverages} />
-            <ProductionChart data={productionData} />
-          </div>
+        {/* Tabbed Content */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 max-w-md">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="all-bales">All Bales</TabsTrigger>
+            <TabsTrigger value="statistics">Statistics</TabsTrigger>
+          </TabsList>
 
-          {/* Right Column - 1/3 width */}
-          <div className="space-y-6">
-            <BaleHistoryList bales={recentBales} onBaleClick={handleBaleClick} />
-            <AlertsPanel alerts={alerts} />
-          </div>
-        </div>
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - 2/3 width */}
+              <div className="lg:col-span-2 space-y-6">
+                <BaleMetrics currentBale={currentBale} averages={balerAverages} />
+                <ProductionChart data={productionData} />
+              </div>
+
+              {/* Right Column - 1/3 width */}
+              <div className="space-y-6">
+                <BaleHistoryList bales={recentBales} onBaleClick={handleBaleClick} />
+                <AlertsPanel alerts={alerts} />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="all-bales" className="mt-6">
+            <AllBalesView bales={recentBales} onBaleClick={handleBaleClick} />
+          </TabsContent>
+
+          <TabsContent value="statistics" className="mt-6">
+            <StatisticsView />
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Bale Detail Modal */}
