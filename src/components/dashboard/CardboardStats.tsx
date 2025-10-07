@@ -15,9 +15,9 @@ interface CardboardStatsProps {
 }
 
 export function CardboardStats({ thisBalerAverage, fleetAverage }: CardboardStatsProps) {
-  const densityComparison = ((thisBalerAverage.density / fleetAverage.density - 1) * 100).toFixed(1);
-  const weightComparison = ((thisBalerAverage.weight / fleetAverage.weight - 1) * 100).toFixed(1);
-  const outputComparison = ((thisBalerAverage.dailyOutput / fleetAverage.dailyOutput - 1) * 100).toFixed(1);
+  const densityComparison = ((thisBalerAverage.density / fleetAverage.density - 1) * 100).toFixed(2);
+  const weightComparison = ((thisBalerAverage.weight / fleetAverage.weight - 1) * 100).toFixed(2);
+  const outputComparison = ((thisBalerAverage.dailyOutput / fleetAverage.dailyOutput - 1) * 100).toFixed(2);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -31,11 +31,11 @@ export function CardboardStats({ thisBalerAverage, fleetAverage }: CardboardStat
         <div className="space-y-4">
           <div className="flex justify-between items-center pb-3 border-b border-border">
             <span className="text-sm text-muted-foreground">Avg. Density</span>
-            <span className="text-xl font-bold text-foreground">{thisBalerAverage.density} kg/m³</span>
+            <span className="text-xl font-bold text-foreground">{thisBalerAverage.density.toFixed(2)} kg/m³</span>
           </div>
           <div className="flex justify-between items-center pb-3 border-b border-border">
             <span className="text-sm text-muted-foreground">Avg. Bale Weight</span>
-            <span className="text-xl font-bold text-foreground">{thisBalerAverage.weight} kg</span>
+            <span className="text-xl font-bold text-foreground">{thisBalerAverage.weight.toFixed(2)} kg</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Daily Output</span>
@@ -61,7 +61,7 @@ export function CardboardStats({ thisBalerAverage, fleetAverage }: CardboardStat
                 </span> vs fleet
               </p>
             </div>
-            <span className="text-xl font-bold text-foreground">{fleetAverage.density} kg/m³</span>
+            <span className="text-xl font-bold text-foreground">{fleetAverage.density.toFixed(2)} kg/m³</span>
           </div>
           <div className="flex justify-between items-center pb-3 border-b border-border">
             <div>
@@ -72,7 +72,7 @@ export function CardboardStats({ thisBalerAverage, fleetAverage }: CardboardStat
                 </span> vs fleet
               </p>
             </div>
-            <span className="text-xl font-bold text-foreground">{fleetAverage.weight} kg</span>
+            <span className="text-xl font-bold text-foreground">{fleetAverage.weight.toFixed(2)} kg</span>
           </div>
           <div className="flex justify-between items-center">
             <div>

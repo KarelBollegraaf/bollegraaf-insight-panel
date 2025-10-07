@@ -35,19 +35,19 @@ export function BaleMetrics({ currentBale, averages }: BaleMetricsProps) {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Length:</span>
                 <span className="text-lg font-semibold text-foreground">
-                  {currentBale.length} cm
+                  {currentBale.length.toFixed(2)} cm
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Width:</span>
                 <span className="text-lg font-semibold text-foreground">
-                  {currentBale.width} cm
+                  {currentBale.width.toFixed(2)} cm
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Height:</span>
                 <span className="text-lg font-semibold text-foreground">
-                  {currentBale.height} cm
+                  {currentBale.height.toFixed(2)} cm
                 </span>
               </div>
             </div>
@@ -62,13 +62,13 @@ export function BaleMetrics({ currentBale, averages }: BaleMetricsProps) {
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Weight:</span>
                 <span className="text-lg font-semibold text-foreground">
-                  {currentBale.weight} kg
+                  {currentBale.weight.toFixed(2)} kg
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Density:</span>
                 <span className="text-lg font-semibold text-foreground">
-                  {currentBale.density} kg/m³
+                  {currentBale.density.toFixed(2)} kg/m³
                 </span>
               </div>
             </div>
@@ -83,7 +83,7 @@ export function BaleMetrics({ currentBale, averages }: BaleMetricsProps) {
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-sm text-muted-foreground">Avg. Length</span>
                   <span className="text-base font-semibold text-foreground">
-                    {averages.length} cm
+                    {averages.length.toFixed(2)} cm
                   </span>
                 </div>
                 <div className="w-full bg-border rounded-full h-2">
@@ -98,7 +98,7 @@ export function BaleMetrics({ currentBale, averages }: BaleMetricsProps) {
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-sm text-muted-foreground">Avg. Weight</span>
                   <span className="text-base font-semibold text-foreground">
-                    {averages.weight} kg
+                    {averages.weight.toFixed(2)} kg
                   </span>
                 </div>
                 <div className="w-full bg-border rounded-full h-2">
@@ -113,7 +113,7 @@ export function BaleMetrics({ currentBale, averages }: BaleMetricsProps) {
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-sm text-muted-foreground">Avg. Density</span>
                   <span className="text-base font-semibold text-foreground">
-                    {averages.density} kg/m³
+                    {averages.density.toFixed(2)} kg/m³
                   </span>
                 </div>
                 <div className="w-full bg-border rounded-full h-2">

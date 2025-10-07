@@ -27,10 +27,10 @@ export function generateBaleData(count: number = 1000): Bale[] {
     
     const recipeName = recipeNames[Math.floor(Math.random() * recipeNames.length)];
     
-    // Generate dimensions
+    // Generate dimensions - width and height are constant, only length varies
     const length = 115 + Math.random() * 15; // 115-130 cm
-    const width = 75 + Math.random() * 10; // 75-85 cm
-    const height = 68 + Math.random() * 10; // 68-78 cm
+    const width = 80; // Fixed width
+    const height = 73; // Fixed height
     
     const volume = (length * width * height) / 1000000; // m³
     const density = 400 + Math.random() * 80; // 400-480 kg/m³

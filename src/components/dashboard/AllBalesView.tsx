@@ -56,9 +56,9 @@ export function AllBalesView({ bales, onBaleClick }: AllBalesViewProps) {
                     {bale.timestamp.toLocaleDateString()} {bale.timestamp.toLocaleTimeString()}
                   </TableCell>
                   <TableCell>{bale.recipeName}</TableCell>
-                  <TableCell className="text-right">{bale.measuredBaleLength.toFixed(1)}</TableCell>
-                  <TableCell className="text-right">{bale.weight.toFixed(1)}</TableCell>
-                  <TableCell className="text-right">{bale.density.toFixed(0)}</TableCell>
+                  <TableCell className="text-right">{bale.measuredBaleLength.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{bale.weight.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{bale.density.toFixed(2)}</TableCell>
                   <TableCell className="text-right">{(bale.kwhBaling + bale.kwhIdle).toFixed(2)}</TableCell>
                   <TableCell className="text-right">{bale.numberOfStrokes}</TableCell>
                   <TableCell>

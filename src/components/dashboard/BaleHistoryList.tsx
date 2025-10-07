@@ -43,7 +43,7 @@ export function BaleHistoryList({ bales, onBaleClick }: BaleHistoryListProps) {
                     </Badge>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {bale.timestamp.toLocaleTimeString()} - {bale.weight}kg, {bale.density}kg/m³
+                    {bale.timestamp.toLocaleTimeString()} - {bale.weight.toFixed(2)}kg, {bale.density.toFixed(2)}kg/m³
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />

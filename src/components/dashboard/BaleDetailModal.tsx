@@ -36,7 +36,7 @@ const qualityConfig = {
 
 function ComparisonIndicator({ value, average }: { value: number; average: number }) {
   const diff = value - average;
-  const percentDiff = ((diff / average) * 100).toFixed(1);
+  const percentDiff = ((diff / average) * 100).toFixed(2);
   
   if (Math.abs(diff) < 1) {
     return (
@@ -103,15 +103,15 @@ export function BaleDetailModal({
                 <div className="space-y-2 pl-6">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Length:</span>
-                    <span className="text-base font-semibold text-foreground">{bale.length} cm</span>
+                    <span className="text-base font-semibold text-foreground">{bale.length.toFixed(2)} cm</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Width:</span>
-                    <span className="text-base font-semibold text-foreground">{bale.width} cm</span>
+                    <span className="text-base font-semibold text-foreground">{bale.width.toFixed(2)} cm</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Height:</span>
-                    <span className="text-base font-semibold text-foreground">{bale.height} cm</span>
+                    <span className="text-base font-semibold text-foreground">{bale.height.toFixed(2)} cm</span>
                   </div>
                 </div>
               </div>
@@ -124,11 +124,11 @@ export function BaleDetailModal({
                 <div className="space-y-2 pl-6">
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Weight:</span>
-                    <span className="text-base font-semibold text-foreground">{bale.weight} kg</span>
+                    <span className="text-base font-semibold text-foreground">{bale.weight.toFixed(2)} kg</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Density:</span>
-                    <span className="text-base font-semibold text-foreground">{bale.density} kg/m³</span>
+                    <span className="text-base font-semibold text-foreground">{bale.density.toFixed(2)} kg/m³</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Volume:</span>
@@ -150,27 +150,27 @@ export function BaleDetailModal({
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Length</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.length} cm</p>
+                <p className="text-sm font-semibold text-foreground">{balerAverages.length.toFixed(2)} cm</p>
                 <ComparisonIndicator value={bale.length} average={balerAverages.length} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Width</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.width} cm</p>
+                <p className="text-sm font-semibold text-foreground">{balerAverages.width.toFixed(2)} cm</p>
                 <ComparisonIndicator value={bale.width} average={balerAverages.width} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Height</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.height} cm</p>
+                <p className="text-sm font-semibold text-foreground">{balerAverages.height.toFixed(2)} cm</p>
                 <ComparisonIndicator value={bale.height} average={balerAverages.height} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Weight</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.weight} kg</p>
+                <p className="text-sm font-semibold text-foreground">{balerAverages.weight.toFixed(2)} kg</p>
                 <ComparisonIndicator value={bale.weight} average={balerAverages.weight} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Density</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.density} kg/m³</p>
+                <p className="text-sm font-semibold text-foreground">{balerAverages.density.toFixed(2)} kg/m³</p>
                 <ComparisonIndicator value={bale.density} average={balerAverages.density} />
               </div>
             </div>
@@ -186,27 +186,27 @@ export function BaleDetailModal({
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Length</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.length} cm</p>
+                <p className="text-sm font-semibold text-foreground">{allBalersAverages.length.toFixed(2)} cm</p>
                 <ComparisonIndicator value={bale.length} average={allBalersAverages.length} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Width</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.width} cm</p>
+                <p className="text-sm font-semibold text-foreground">{allBalersAverages.width.toFixed(2)} cm</p>
                 <ComparisonIndicator value={bale.width} average={allBalersAverages.width} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Height</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.height} cm</p>
+                <p className="text-sm font-semibold text-foreground">{allBalersAverages.height.toFixed(2)} cm</p>
                 <ComparisonIndicator value={bale.height} average={allBalersAverages.height} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Weight</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.weight} kg</p>
+                <p className="text-sm font-semibold text-foreground">{allBalersAverages.weight.toFixed(2)} kg</p>
                 <ComparisonIndicator value={bale.weight} average={allBalersAverages.weight} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Density</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.density} kg/m³</p>
+                <p className="text-sm font-semibold text-foreground">{allBalersAverages.density.toFixed(2)} kg/m³</p>
                 <ComparisonIndicator value={bale.density} average={allBalersAverages.density} />
               </div>
             </div>

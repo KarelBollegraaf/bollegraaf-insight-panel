@@ -64,15 +64,15 @@ export function EnergyAnalysis({ bales }: EnergyAnalysisProps) {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-muted/30 rounded-lg p-4 border border-border">
           <div className="text-sm text-muted-foreground mb-1">Total Energy</div>
-          <div className="text-2xl font-bold text-foreground">{total.toFixed(1)} kWh</div>
+          <div className="text-2xl font-bold text-foreground">{total.toFixed(2)} kWh</div>
         </div>
         <div className="bg-status-success/10 rounded-lg p-4 border border-status-success/20">
-          <div className="text-sm text-muted-foreground mb-1">Baling ({((totalKwhBaling/total)*100).toFixed(0)}%)</div>
-          <div className="text-2xl font-bold text-foreground">{totalKwhBaling.toFixed(1)} kWh</div>
+          <div className="text-sm text-muted-foreground mb-1">Baling ({((totalKwhBaling/total)*100).toFixed(2)}%)</div>
+          <div className="text-2xl font-bold text-foreground">{totalKwhBaling.toFixed(2)} kWh</div>
         </div>
         <div className="bg-status-idle/10 rounded-lg p-4 border border-status-idle/20">
-          <div className="text-sm text-muted-foreground mb-1">Idle ({((totalKwhIdle/total)*100).toFixed(0)}%)</div>
-          <div className="text-2xl font-bold text-foreground">{totalKwhIdle.toFixed(1)} kWh</div>
+          <div className="text-sm text-muted-foreground mb-1">Idle ({((totalKwhIdle/total)*100).toFixed(2)}%)</div>
+          <div className="text-2xl font-bold text-foreground">{totalKwhIdle.toFixed(2)} kWh</div>
         </div>
       </div>
 

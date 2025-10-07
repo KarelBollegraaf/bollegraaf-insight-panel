@@ -13,8 +13,8 @@ export function TimeAnalysis({ bales }: TimeAnalysisProps) {
   const total = totalBalingTime + totalIdleTime;
 
   const data = [
-    { name: "Baling Time", value: totalBalingTime, percentage: ((totalBalingTime / total) * 100).toFixed(1) },
-    { name: "Idle Time", value: totalIdleTime, percentage: ((totalIdleTime / total) * 100).toFixed(1) },
+    { name: "Baling Time", value: totalBalingTime, percentage: ((totalBalingTime / total) * 100).toFixed(2) },
+    { name: "Idle Time", value: totalIdleTime, percentage: ((totalIdleTime / total) * 100).toFixed(2) },
   ];
 
   const COLORS = ["hsl(var(--status-success))", "hsl(var(--status-idle))"];
@@ -41,12 +41,12 @@ export function TimeAnalysis({ bales }: TimeAnalysisProps) {
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-status-success/10 rounded-lg p-4 border border-status-success/20">
             <div className="text-sm text-muted-foreground mb-1">Baling Time</div>
-            <div className="text-2xl font-bold text-foreground">{(totalBalingTime / 60).toFixed(1)}h</div>
+            <div className="text-2xl font-bold text-foreground">{(totalBalingTime / 60).toFixed(2)}h</div>
             <div className="text-xs text-muted-foreground">{data[0].percentage}%</div>
           </div>
           <div className="bg-status-idle/10 rounded-lg p-4 border border-status-idle/20">
             <div className="text-sm text-muted-foreground mb-1">Idle Time</div>
-            <div className="text-2xl font-bold text-foreground">{(totalIdleTime / 60).toFixed(1)}h</div>
+            <div className="text-2xl font-bold text-foreground">{(totalIdleTime / 60).toFixed(2)}h</div>
             <div className="text-xs text-muted-foreground">{data[1].percentage}%</div>
           </div>
         </div>
@@ -68,7 +68,7 @@ export function TimeAnalysis({ bales }: TimeAnalysisProps) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number) => `${(value / 60).toFixed(1)} hours`}
+              formatter={(value: number) => `${(value / 60).toFixed(2)} hours`}
               contentStyle={{
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
@@ -94,7 +94,7 @@ export function TimeAnalysis({ bales }: TimeAnalysisProps) {
               <div key={recipe} className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-foreground font-medium">{recipe}</span>
-                  <span className="text-muted-foreground">{avg.toFixed(1)} strokes</span>
+                  <span className="text-muted-foreground">{avg.toFixed(2)} strokes</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
                   <div
@@ -110,7 +110,7 @@ export function TimeAnalysis({ bales }: TimeAnalysisProps) {
         <div className="mt-6 bg-muted/30 rounded-lg p-4 border border-border">
           <div className="text-sm text-muted-foreground mb-1">Overall Average</div>
           <div className="text-2xl font-bold text-foreground">
-            {(bales.reduce((sum, b) => sum + b.numberOfStrokes, 0) / bales.length).toFixed(1)} strokes/bale
+            {(bales.reduce((sum, b) => sum + b.numberOfStrokes, 0) / bales.length).toFixed(2)} strokes/bale
           </div>
         </div>
       </Card>

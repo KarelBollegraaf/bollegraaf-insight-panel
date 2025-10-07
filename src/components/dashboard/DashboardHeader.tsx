@@ -41,7 +41,7 @@ export function DashboardHeader({ systemStatus, lastUpdate }: DashboardHeaderPro
             <h1 className="text-2xl font-bold text-secondary">Bollegraaf</h1>
           </div>
           <div className="h-8 w-px bg-border"></div>
-          <h2 className="text-lg font-semibold text-foreground">Baler Control System</h2>
+          <h2 className="text-lg font-semibold text-foreground">Baler Statistics</h2>
         </div>
 
         <div className="flex items-center gap-6">

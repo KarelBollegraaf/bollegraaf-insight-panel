@@ -129,21 +129,21 @@ const Index = () => {
           />
           <MetricCard
             title="Operating Hours"
-            value={generalStats.operatingHours}
+            value={generalStats.operatingHours.toFixed(2)}
             unit="hrs"
             icon={Activity}
             variant="default"
           />
           <MetricCard
             title="Total Energy"
-            value={generalStats.totalKwh}
+            value={generalStats.totalKwh.toFixed(2)}
             unit="kWh"
             icon={Gauge}
             variant="success"
           />
           <MetricCard
             title="Avg Density"
-            value={Math.round(balerAverages.density)}
+            value={balerAverages.density.toFixed(2)}
             unit="kg/m³"
             icon={TrendingUp}
             variant="success"
