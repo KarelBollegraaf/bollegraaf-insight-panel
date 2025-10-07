@@ -1,21 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { BaleMetrics } from "@/components/dashboard/BaleMetrics";
 import { ProductionChart } from "@/components/dashboard/ProductionChart";
 import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
-import { BaleHistoryList, Bale } from "@/components/dashboard/BaleHistoryList";
+import { BaleHistoryList } from "@/components/dashboard/BaleHistoryList";
 import { BaleDetailModal } from "@/components/dashboard/BaleDetailModal";
 import { CardboardStats } from "@/components/dashboard/CardboardStats";
 import { AllBalesView } from "@/components/dashboard/AllBalesView";
 import { StatisticsView } from "@/components/dashboard/StatisticsView";
+import { MaterialBreakdown } from "@/components/dashboard/MaterialBreakdown";
+import { EnergyAnalysis } from "@/components/dashboard/EnergyAnalysis";
+import { WireConsumption } from "@/components/dashboard/WireConsumption";
+import { TimeAnalysis } from "@/components/dashboard/TimeAnalysis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, TrendingUp, Activity, Gauge } from "lucide-react";
+import { Bale, GeneralStats } from "@/types/bale";
+import { generateBaleData, calculateGeneralStats } from "@/utils/generateBaleData";
 
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedBale, setSelectedBale] = useState<Bale | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Generate 1000 bales once
+  const allBales = useMemo(() => generateBaleData(1000), []);
+  const generalStats = useMemo(() => calculateGeneralStats(allBales), [allBales]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -29,6 +39,9 @@ const Index = () => {
     setIsModalOpen(true);
   };
 
+  // Recent bales (last 5)
+  const recentBales = allBales.slice(0, 5);
+
   // Simulated real-time data - Cardboard baler
   const productionData = [
     { time: "08:00", balesPerHour: 38, tonsPerHour: 15 },
@@ -40,59 +53,6 @@ const Index = () => {
     { time: "14:00", balesPerHour: 44, tonsPerHour: 18 },
   ];
 
-  // Recent bales history
-  const recentBales: Bale[] = [
-    {
-      id: "CB-1847",
-      timestamp: new Date(Date.now() - 300000),
-      length: 122,
-      width: 78,
-      height: 72,
-      weight: 392,
-      density: 445,
-      quality: "excellent",
-    },
-    {
-      id: "CB-1846",
-      timestamp: new Date(Date.now() - 900000),
-      length: 118,
-      width: 80,
-      height: 70,
-      weight: 378,
-      density: 428,
-      quality: "good",
-    },
-    {
-      id: "CB-1845",
-      timestamp: new Date(Date.now() - 1500000),
-      length: 115,
-      width: 79,
-      height: 73,
-      weight: 385,
-      density: 438,
-      quality: "good",
-    },
-    {
-      id: "CB-1844",
-      timestamp: new Date(Date.now() - 2100000),
-      length: 120,
-      width: 77,
-      height: 71,
-      weight: 368,
-      density: 415,
-      quality: "acceptable",
-    },
-    {
-      id: "CB-1843",
-      timestamp: new Date(Date.now() - 2700000),
-      length: 125,
-      width: 81,
-      height: 74,
-      weight: 405,
-      density: 455,
-      quality: "excellent",
-    },
-  ];
 
   const alerts = [
     {
@@ -109,42 +69,36 @@ const Index = () => {
     },
   ];
 
-  const currentBale = {
-    length: 122,
-    width: 78,
-    height: 72,
-    weight: 392,
-    density: 445,
-  };
+  const currentBale = recentBales[0];
 
   // This baler's averages
   const balerAverages = {
-    length: 120,
-    width: 79,
-    height: 72,
-    weight: 386,
-    density: 438,
+    length: allBales.reduce((sum, b) => sum + b.length, 0) / allBales.length,
+    width: allBales.reduce((sum, b) => sum + b.width, 0) / allBales.length,
+    height: allBales.reduce((sum, b) => sum + b.height, 0) / allBales.length,
+    weight: allBales.reduce((sum, b) => sum + b.weight, 0) / allBales.length,
+    density: allBales.reduce((sum, b) => sum + b.density, 0) / allBales.length,
   };
 
-  // Fleet-wide averages for all cardboard balers
+  // Fleet-wide averages (simulated slightly different)
   const fleetAverages = {
-    length: 118,
-    width: 80,
-    height: 71,
-    weight: 382,
-    density: 432,
+    length: balerAverages.length * 0.98,
+    width: balerAverages.width * 1.01,
+    height: balerAverages.height * 0.99,
+    weight: balerAverages.weight * 0.97,
+    density: balerAverages.density * 0.96,
   };
 
   const cardboardStats = {
     thisBalerAverage: {
-      density: 438,
-      weight: 386,
-      dailyOutput: 425,
+      density: balerAverages.density,
+      weight: balerAverages.weight,
+      dailyOutput: allBales.length,
     },
     fleetAverage: {
-      density: 432,
-      weight: 382,
-      dailyOutput: 410,
+      density: fleetAverages.density,
+      weight: fleetAverages.weight,
+      dailyOutput: Math.floor(allBales.length * 0.96),
     },
   };
 
@@ -167,34 +121,33 @@ const Index = () => {
         {/* Key Metrics Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
-            title="Total Bales Today"
-            value={425}
+            title="Total Bales"
+            value={allBales.length}
             icon={Package}
             variant="primary"
             trend={{ value: 8, label: "vs yesterday" }}
           />
           <MetricCard
-            title="Production Rate"
-            value={44}
-            unit="bales/hr"
-            icon={TrendingUp}
-            variant="success"
-            trend={{ value: 5, label: "vs avg" }}
-          />
-          <MetricCard
-            title="Throughput"
-            value={17.6}
-            unit="tons/hr"
+            title="Operating Hours"
+            value={generalStats.operatingHours}
+            unit="hrs"
             icon={Activity}
             variant="default"
           />
           <MetricCard
-            title="System Efficiency"
-            value={96}
-            unit="%"
+            title="Total Energy"
+            value={generalStats.totalKwh}
+            unit="kWh"
             icon={Gauge}
             variant="success"
-            trend={{ value: 4, label: "vs last shift" }}
+          />
+          <MetricCard
+            title="Avg Density"
+            value={Math.round(balerAverages.density)}
+            unit="kg/m³"
+            icon={TrendingUp}
+            variant="success"
+            trend={{ value: 4, label: "vs fleet avg" }}
           />
         </div>
 
@@ -206,10 +159,12 @@ const Index = () => {
 
         {/* Tabbed Content */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="all-bales">All Bales</TabsTrigger>
             <TabsTrigger value="statistics">Statistics</TabsTrigger>
+            <TabsTrigger value="energy">Energy & Time</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -228,12 +183,22 @@ const Index = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="analytics" className="mt-6 space-y-6">
+            <MaterialBreakdown bales={allBales} />
+            <WireConsumption bales={allBales} />
+          </TabsContent>
+
           <TabsContent value="all-bales" className="mt-6">
-            <AllBalesView bales={recentBales} onBaleClick={handleBaleClick} />
+            <AllBalesView bales={allBales} onBaleClick={handleBaleClick} />
           </TabsContent>
 
           <TabsContent value="statistics" className="mt-6">
             <StatisticsView />
+          </TabsContent>
+
+          <TabsContent value="energy" className="mt-6 space-y-6">
+            <EnergyAnalysis bales={allBales} />
+            <TimeAnalysis bales={allBales} />
           </TabsContent>
         </Tabs>
       </main>

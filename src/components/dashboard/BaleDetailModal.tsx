@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Bale } from "./BaleHistoryList";
+import { Bale } from "@/types/bale";
 import { Ruler, Weight, Box, TrendingUp, TrendingDown, Minus, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 

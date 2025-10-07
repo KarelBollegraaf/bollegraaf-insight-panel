@@ -1,17 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Package, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-export interface Bale {
-  id: string;
-  timestamp: Date;
-  length: number;
-  width: number;
-  height: number;
-  weight: number;
-  density: number;
-  quality: "excellent" | "good" | "acceptable";
-}
+import { Bale } from "@/types/bale";
 
 interface BaleHistoryListProps {
   bales: Bale[];
