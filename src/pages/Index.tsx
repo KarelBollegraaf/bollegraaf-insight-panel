@@ -58,23 +58,26 @@ const Index = () => {
 
   const currentBale = recentBales[0];
 
-  // This baler's averages
-  const balerAverages = {
+  // Calculate recipe-specific averages for selected bale
+  const recipeAverages = useMemo(() => {
+    if (!selectedBale) return { length: 0, width: 0, height: 0, weight: 0, density: 0 };
+    const recipeBales = allBales.filter(b => b.recipeName === selectedBale.recipeName);
+    return {
+      length: recipeBales.reduce((sum, b) => sum + b.length, 0) / recipeBales.length,
+      width: recipeBales.reduce((sum, b) => sum + b.width, 0) / recipeBales.length,
+      height: recipeBales.reduce((sum, b) => sum + b.height, 0) / recipeBales.length,
+      weight: recipeBales.reduce((sum, b) => sum + b.weight, 0) / recipeBales.length,
+      density: recipeBales.reduce((sum, b) => sum + b.density, 0) / recipeBales.length,
+    };
+  }, [selectedBale, allBales]);
+
+  const balerAverages = useMemo(() => ({
     length: allBales.reduce((sum, b) => sum + b.length, 0) / allBales.length,
     width: allBales.reduce((sum, b) => sum + b.width, 0) / allBales.length,
     height: allBales.reduce((sum, b) => sum + b.height, 0) / allBales.length,
     weight: allBales.reduce((sum, b) => sum + b.weight, 0) / allBales.length,
     density: allBales.reduce((sum, b) => sum + b.density, 0) / allBales.length,
-  };
-
-  // Fleet-wide averages (simulated slightly different)
-  const fleetAverages = {
-    length: balerAverages.length * 0.98,
-    width: balerAverages.width * 1.01,
-    height: balerAverages.height * 0.99,
-    weight: balerAverages.weight * 0.97,
-    density: balerAverages.density * 0.96,
-  };
+  }), [allBales]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -178,8 +181,7 @@ const Index = () => {
         bale={selectedBale}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        balerAverages={balerAverages}
-        allBalersAverages={fleetAverages}
+        recipeAverages={recipeAverages}
       />
     </div>
   );

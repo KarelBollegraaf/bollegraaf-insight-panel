@@ -1,4 +1,4 @@
-import { Activity, Bell } from "lucide-react";
+import { Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface DashboardHeaderProps {
@@ -54,10 +54,6 @@ export function DashboardHeader({ systemStatus, lastUpdate }: DashboardHeaderPro
           <div className="text-sm text-muted-foreground">
             Last update: {lastUpdate.toLocaleTimeString()}
           </div>
-          <button className="relative p-2 hover:bg-muted rounded-lg transition-colors">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
-          </button>
         </div>
       </div>
     </header>
