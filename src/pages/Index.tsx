@@ -3,7 +3,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { BaleMetrics } from "@/components/dashboard/BaleMetrics";
 import { ProductionChart } from "@/components/dashboard/ProductionChart";
-import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
+
 import { BaleHistoryList } from "@/components/dashboard/BaleHistoryList";
 import { BaleDetailModal } from "@/components/dashboard/BaleDetailModal";
 import { CardboardStats } from "@/components/dashboard/CardboardStats";
@@ -11,7 +11,7 @@ import { AllBalesView } from "@/components/dashboard/AllBalesView";
 import { StatisticsView } from "@/components/dashboard/StatisticsView";
 import { MaterialBreakdown } from "@/components/dashboard/MaterialBreakdown";
 import { EnergyAnalysis } from "@/components/dashboard/EnergyAnalysis";
-import { WireConsumption } from "@/components/dashboard/WireConsumption";
+
 import { TimeAnalysis } from "@/components/dashboard/TimeAnalysis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, TrendingUp, Activity, Gauge } from "lucide-react";
@@ -54,20 +54,7 @@ const Index = () => {
   ];
 
 
-  const alerts = [
-    {
-      id: "1",
-      type: "warning" as const,
-      message: "Hydraulic pressure slightly below optimal range",
-      timestamp: new Date(Date.now() - 1200000),
-    },
-    {
-      id: "2",
-      type: "info" as const,
-      message: "Scheduled maintenance due in 48 hours",
-      timestamp: new Date(Date.now() - 3600000),
-    },
-  ];
+
 
   const currentBale = recentBales[0];
 
@@ -87,19 +74,6 @@ const Index = () => {
     height: balerAverages.height * 0.99,
     weight: balerAverages.weight * 0.97,
     density: balerAverages.density * 0.96,
-  };
-
-  const cardboardStats = {
-    thisBalerAverage: {
-      density: balerAverages.density,
-      weight: balerAverages.weight,
-      dailyOutput: allBales.length,
-    },
-    fleetAverage: {
-      density: fleetAverages.density,
-      weight: fleetAverages.weight,
-      dailyOutput: Math.floor(allBales.length * 0.96),
-    },
   };
 
   return (
@@ -152,10 +126,7 @@ const Index = () => {
         </div>
 
         {/* Performance Comparison */}
-        <CardboardStats
-          thisBalerAverage={cardboardStats.thisBalerAverage}
-          fleetAverage={cardboardStats.fleetAverage}
-        />
+        <CardboardStats bales={allBales} />
 
         {/* Tabbed Content */}
         <Tabs defaultValue="overview" className="w-full">
@@ -178,14 +149,13 @@ const Index = () => {
               {/* Right Column - 1/3 width */}
               <div className="space-y-6">
                 <BaleHistoryList bales={recentBales} onBaleClick={handleBaleClick} />
-                <AlertsPanel alerts={alerts} />
+                
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6 space-y-6">
             <MaterialBreakdown bales={allBales} />
-            <WireConsumption bales={allBales} />
           </TabsContent>
 
           <TabsContent value="all-bales" className="mt-6">
