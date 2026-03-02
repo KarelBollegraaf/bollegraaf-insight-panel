@@ -12,14 +12,7 @@ interface BaleDetailModalProps {
   bale: Bale | null;
   isOpen: boolean;
   onClose: () => void;
-  balerAverages: {
-    length: number;
-    width: number;
-    height: number;
-    weight: number;
-    density: number;
-  };
-  allBalersAverages: {
+  recipeAverages: {
     length: number;
     width: number;
     height: number;
@@ -65,8 +58,7 @@ export function BaleDetailModal({
   bale,
   isOpen,
   onClose,
-  balerAverages,
-  allBalersAverages,
+  recipeAverages,
 }: BaleDetailModalProps) {
   if (!bale) return null;
 
@@ -141,73 +133,38 @@ export function BaleDetailModal({
             </div>
           </div>
 
-          {/* Comparison with This Baler Average */}
+          {/* Comparison with Same Recipe Average */}
           <div className="border border-border rounded-lg p-4">
-            <h4 className="font-semibold text-foreground mb-4 text-sm">
-              Comparison vs This Baler's Average
-            </h4>
-            
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Length</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.length.toFixed(2)} cm</p>
-                <ComparisonIndicator value={bale.length} average={balerAverages.length} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Width</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.width.toFixed(2)} cm</p>
-                <ComparisonIndicator value={bale.width} average={balerAverages.width} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Height</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.height.toFixed(2)} cm</p>
-                <ComparisonIndicator value={bale.height} average={balerAverages.height} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Weight</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.weight.toFixed(2)} kg</p>
-                <ComparisonIndicator value={bale.weight} average={balerAverages.weight} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Density</p>
-                <p className="text-sm font-semibold text-foreground">{balerAverages.density.toFixed(2)} kg/m³</p>
-                <ComparisonIndicator value={bale.density} average={balerAverages.density} />
-              </div>
-            </div>
-          </div>
-
-          {/* Comparison with All Cardboard Balers Average */}
-          <div className="border border-primary/20 bg-accent/20 rounded-lg p-4">
             <h4 className="font-semibold text-foreground mb-4 text-sm flex items-center gap-2">
-              <span>Comparison vs All Cardboard Balers Average</span>
-              <Badge variant="outline" className="text-xs">Fleet-wide</Badge>
+              Comparison vs Average for "{bale.recipeName}"
+              <Badge variant="outline" className="text-xs">{bale.recipeName}</Badge>
             </h4>
             
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Length</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.length.toFixed(2)} cm</p>
-                <ComparisonIndicator value={bale.length} average={allBalersAverages.length} />
+                <p className="text-sm font-semibold text-foreground">{recipeAverages.length.toFixed(2)} cm</p>
+                <ComparisonIndicator value={bale.length} average={recipeAverages.length} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Width</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.width.toFixed(2)} cm</p>
-                <ComparisonIndicator value={bale.width} average={allBalersAverages.width} />
+                <p className="text-sm font-semibold text-foreground">{recipeAverages.width.toFixed(2)} cm</p>
+                <ComparisonIndicator value={bale.width} average={recipeAverages.width} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Height</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.height.toFixed(2)} cm</p>
-                <ComparisonIndicator value={bale.height} average={allBalersAverages.height} />
+                <p className="text-sm font-semibold text-foreground">{recipeAverages.height.toFixed(2)} cm</p>
+                <ComparisonIndicator value={bale.height} average={recipeAverages.height} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Weight</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.weight.toFixed(2)} kg</p>
-                <ComparisonIndicator value={bale.weight} average={allBalersAverages.weight} />
+                <p className="text-sm font-semibold text-foreground">{recipeAverages.weight.toFixed(2)} kg</p>
+                <ComparisonIndicator value={bale.weight} average={recipeAverages.weight} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Density</p>
-                <p className="text-sm font-semibold text-foreground">{allBalersAverages.density.toFixed(2)} kg/m³</p>
-                <ComparisonIndicator value={bale.density} average={allBalersAverages.density} />
+                <p className="text-sm font-semibold text-foreground">{recipeAverages.density.toFixed(2)} kg/m³</p>
+                <ComparisonIndicator value={bale.density} average={recipeAverages.density} />
               </div>
             </div>
           </div>
