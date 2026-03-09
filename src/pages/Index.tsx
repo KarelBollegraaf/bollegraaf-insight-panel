@@ -1,188 +1,175 @@
-import { useState, useEffect, useMemo } from "react";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { MetricCard } from "@/components/dashboard/MetricCard";
-import { BaleMetrics } from "@/components/dashboard/BaleMetrics";
-import { ProductionChart } from "@/components/dashboard/ProductionChart";
+import { useQuery } from "@tanstack/react-query";
+import { fetchOverview } from "@/lib/api";
+import { Card } from "@/components/ui/card";
+import { Package, Activity, Gauge, Zap, Thermometer, Droplets, Clock, Weight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { BaleHistoryList } from "@/components/dashboard/BaleHistoryList";
-import { BaleDetailModal } from "@/components/dashboard/BaleDetailModal";
-import { CardboardStats } from "@/components/dashboard/CardboardStats";
-import { AllBalesView } from "@/components/dashboard/AllBalesView";
-import { StatisticsView } from "@/components/dashboard/StatisticsView";
-import { MaterialBreakdown } from "@/components/dashboard/MaterialBreakdown";
-import { EnergyAnalysis } from "@/components/dashboard/EnergyAnalysis";
-
-import { TimeAnalysis } from "@/components/dashboard/TimeAnalysis";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, TrendingUp, Activity, Gauge } from "lucide-react";
-import { Bale, GeneralStats } from "@/types/bale";
-import { generateBaleData, calculateGeneralStats } from "@/utils/generateBaleData";
-
-const Index = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [selectedBale, setSelectedBale] = useState<Bale | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Generate 1000 bales once
-  const allBales = useMemo(() => generateBaleData(1000), []);
-  const generalStats = useMemo(() => calculateGeneralStats(allBales), [allBales]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleBaleClick = (bale: Bale) => {
-    setSelectedBale(bale);
-    setIsModalOpen(true);
+function MetricCard({ title, value, unit, icon: Icon, variant = "default" }: {
+  title: string;
+  value: string | number;
+  unit?: string;
+  icon: any;
+  variant?: "default" | "primary" | "success";
+}) {
+  const variantStyles = {
+    default: "border-card-border",
+    primary: "border-primary/30 bg-primary/5",
+    success: "border-status-success/30 bg-status-success/5",
   };
 
-  // Recent bales (last 5)
-  const recentBales = allBales.slice(0, 5);
+  return (
+    <Card className={`p-4 border-2 ${variantStyles[variant]}`}>
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-lg bg-muted">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">{title}</p>
+          <p className="text-xl font-bold text-foreground">
+            {value} {unit && <span className="text-sm font-normal text-muted-foreground">{unit}</span>}
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
-  // Simulated real-time data - Cardboard baler
-  const productionData = [
-    { time: "08:00", balesPerHour: 38, tonsPerHour: 15 },
-    { time: "09:00", balesPerHour: 42, tonsPerHour: 17 },
-    { time: "10:00", balesPerHour: 45, tonsPerHour: 18 },
-    { time: "11:00", balesPerHour: 41, tonsPerHour: 16 },
-    { time: "12:00", balesPerHour: 35, tonsPerHour: 14 },
-    { time: "13:00", balesPerHour: 48, tonsPerHour: 19 },
-    { time: "14:00", balesPerHour: 44, tonsPerHour: 18 },
-  ];
+const Index = () => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["overview"],
+    queryFn: fetchOverview,
+    refetchInterval: 10000,
+  });
 
+  if (error) {
+    return (
+      <Card className="p-8 text-center border-2 border-status-error/30">
+        <p className="text-status-error font-semibold mb-2">Failed to connect to API</p>
+        <p className="text-sm text-muted-foreground">
+          Ensure the backend server is running at{" "}
+          <code className="bg-muted px-2 py-1 rounded text-xs">{import.meta.env.VITE_API_URL || "http://localhost:3001/api"}</code>
+        </p>
+      </Card>
+    );
+  }
 
+  if (isLoading || !data) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-
-  const currentBale = recentBales[0];
-
-  // Calculate recipe-specific averages for selected bale
-  const recipeAverages = useMemo(() => {
-    if (!selectedBale) return { length: 0, width: 0, height: 0, weight: 0, density: 0 };
-    const recipeBales = allBales.filter(b => b.recipeName === selectedBale.recipeName);
-    return {
-      length: recipeBales.reduce((sum, b) => sum + b.length, 0) / recipeBales.length,
-      width: recipeBales.reduce((sum, b) => sum + b.width, 0) / recipeBales.length,
-      height: recipeBales.reduce((sum, b) => sum + b.height, 0) / recipeBales.length,
-      weight: recipeBales.reduce((sum, b) => sum + b.weight, 0) / recipeBales.length,
-      density: recipeBales.reduce((sum, b) => sum + b.density, 0) / recipeBales.length,
-    };
-  }, [selectedBale, allBales]);
-
-  const balerAverages = useMemo(() => ({
-    length: allBales.reduce((sum, b) => sum + b.length, 0) / allBales.length,
-    width: allBales.reduce((sum, b) => sum + b.width, 0) / allBales.length,
-    height: allBales.reduce((sum, b) => sum + b.height, 0) / allBales.length,
-    weight: allBales.reduce((sum, b) => sum + b.weight, 0) / allBales.length,
-    density: allBales.reduce((sum, b) => sum + b.density, 0) / allBales.length,
-  }), [allBales]);
+  const { latest, stats, materials, recent24h } = data;
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardHeader systemStatus="running" lastUpdate={currentTime} />
-
-      <main className="p-6 space-y-6 max-w-[1800px] mx-auto">
-        {/* Header Badge */}
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <Package className="h-6 w-6 text-primary" />
-            <div>
-              <h2 className="text-lg font-bold text-foreground">006988-Papierhandel Janssen-NL</h2>
-              <p className="text-sm text-muted-foreground">Specialized cardboard compression system</p>
-            </div>
+    <div className="space-y-6">
+      {/* Machine badge */}
+      <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
+        <div className="flex items-center gap-3">
+          <Package className="h-6 w-6 text-primary" />
+          <div>
+            <h2 className="text-lg font-bold text-foreground">
+              {latest?.customer_number || "Baler"} — {latest?.material_name || "No data"}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Latest bale #{latest?.bale_number} · {latest ? new Date(latest.ts).toLocaleString() : "—"}
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Key Metrics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard
-            title="Total Bales"
-            value={allBales.length}
-            icon={Package}
-            variant="primary"
-            trend={{ value: 8, label: "vs yesterday" }}
-          />
-          <MetricCard
-            title="Operating Hours"
-            value={generalStats.operatingHours.toFixed(2)}
-            unit="hrs"
-            icon={Activity}
-            variant="default"
-          />
-          <MetricCard
-            title="Total Energy"
-            value={generalStats.totalKwh.toFixed(2)}
-            unit="kWh"
-            icon={Gauge}
-            variant="success"
-          />
-          <MetricCard
-            title="Avg Density"
-            value={balerAverages.density.toFixed(2)}
-            unit="kg/m³"
-            icon={TrendingUp}
-            variant="success"
-            trend={{ value: 4, label: "vs fleet avg" }}
-          />
-        </div>
+      {/* KPI grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard title="Total Bales" value={stats?.total_bales ?? 0} icon={Package} variant="primary" />
+        <MetricCard title="Last 24h" value={recent24h} icon={Activity} />
+        <MetricCard title="Total Energy" value={(stats?.total_kwh ?? 0).toFixed(2)} unit="kWh" icon={Zap} variant="success" />
+        <MetricCard title="Avg Weight" value={(stats?.avg_weight ?? 0).toFixed(2)} unit="kg" icon={Weight} />
+        <MetricCard title="Avg Bale Length" value={(stats?.avg_bale_length ?? 0).toFixed(2)} unit="cm" icon={Gauge} />
+        <MetricCard title="Avg Volume" value={(stats?.avg_volume ?? 0).toFixed(2)} unit="m³" icon={Package} />
+        <MetricCard title="Oil Temperature" value={(latest?.oil_temperature ?? 0).toFixed(2)} unit="°C" icon={Thermometer} />
+        <MetricCard title="Oil Level" value={(latest?.oil_level ?? 0).toFixed(2)} icon={Droplets} />
+      </div>
 
-        {/* Performance Comparison */}
-        <CardboardStats bales={allBales} />
-
-        {/* Tabbed Content */}
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="all-bales">All Bales</TabsTrigger>
-            <TabsTrigger value="statistics">Statistics</TabsTrigger>
-            <TabsTrigger value="energy">Energy & Time</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - 2/3 width */}
-              <div className="lg:col-span-2 space-y-6">
-                <BaleMetrics currentBale={currentBale} averages={balerAverages} />
-                <ProductionChart data={productionData} />
-              </div>
-
-              {/* Right Column - 1/3 width */}
-              <div className="space-y-6">
-                <BaleHistoryList bales={recentBales} onBaleClick={handleBaleClick} />
-                
-              </div>
+      {/* Latest bale detail + materials */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Latest bale */}
+        {latest && (
+          <Card className="p-6 border-2 border-card-border">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              Latest Bale Details
+            </h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {[
+                ["Bale Number", latest.bale_number],
+                ["Material", latest.material_name],
+                ["Recipe", latest.recipe_number],
+                ["Shift", latest.shift_number],
+                ["Weight", `${latest.weight?.toFixed(2)} kg`],
+                ["Volume", `${latest.volume?.toFixed(2)} m³`],
+                ["Length", `${latest.bale_length?.toFixed(2)} cm`],
+                ["kWh", latest.kwh_used?.toFixed(2)],
+                ["Total Time", `${latest.total_time?.toFixed(2)} s`],
+                ["Auto Time", `${latest.auto_time?.toFixed(2)} s`],
+                ["Standby Time", `${latest.standby_time?.toFixed(2)} s`],
+                ["Operator", latest.username || "—"],
+              ].map(([label, val]) => (
+                <div key={label as string}>
+                  <p className="text-muted-foreground">{label}</p>
+                  <p className="font-semibold text-foreground">{val}</p>
+                </div>
+              ))}
             </div>
-          </TabsContent>
+          </Card>
+        )}
 
-          <TabsContent value="analytics" className="mt-6 space-y-6">
-            <MaterialBreakdown bales={allBales} />
-          </TabsContent>
+        {/* Materials */}
+        <Card className="p-6 border-2 border-card-border">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Material Breakdown</h3>
+          <div className="space-y-3">
+            {materials.map((m) => (
+              <div key={m.material_name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div>
+                  <p className="font-medium text-foreground">{m.material_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Avg weight: {m.avg_weight?.toFixed(2)} kg · Avg length: {m.avg_length?.toFixed(2)} cm
+                  </p>
+                </div>
+                <span className="text-lg font-bold text-primary">{m.count}</span>
+              </div>
+            ))}
+            {materials.length === 0 && (
+              <p className="text-muted-foreground text-sm">No materials found</p>
+            )}
+          </div>
+        </Card>
+      </div>
 
-          <TabsContent value="all-bales" className="mt-6">
-            <AllBalesView bales={allBales} onBaleClick={handleBaleClick} />
-          </TabsContent>
-
-          <TabsContent value="statistics" className="mt-6">
-            <StatisticsView />
-          </TabsContent>
-
-          <TabsContent value="energy" className="mt-6 space-y-6">
-            <EnergyAnalysis bales={allBales} />
-            <TimeAnalysis bales={allBales} />
-          </TabsContent>
-        </Tabs>
-      </main>
-
-      {/* Bale Detail Modal */}
-      <BaleDetailModal
-        bale={selectedBale}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        recipeAverages={recipeAverages}
-      />
+      {/* Time summary */}
+      {stats && (
+        <Card className="p-6 border-2 border-card-border">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Time Summary</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              ["Total Time", (stats.sum_total_time / 3600).toFixed(2), "hrs"],
+              ["Auto Time", (stats.sum_auto_time / 3600).toFixed(2), "hrs"],
+              ["Standby Time", (stats.sum_standby_time / 3600).toFixed(2), "hrs"],
+              ["Empty Time", (stats.sum_empty_time / 3600).toFixed(2), "hrs"],
+            ].map(([label, val, unit]) => (
+              <div key={label} className="text-center p-3 bg-muted/30 rounded-lg">
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-xl font-bold text-foreground">{val} <span className="text-sm font-normal">{unit}</span></p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
