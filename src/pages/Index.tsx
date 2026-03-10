@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adaptOverview } from "@/lib/dashboardAdapter";
-import { fetchLatestBale, fetchOverviewWithRange } from "@/lib/api";
+import { fetchCycles, fetchLatestBale, fetchOverviewWithRange, fetchPressure } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Package, Activity, Gauge, Zap, Thermometer, Droplets, Clock, Weight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +40,11 @@ function MetricCard({
       </div>
     </Card>
   );
+}
+
+function nonZeroValues(values: unknown): number[] {
+  if (!Array.isArray(values)) return [];
+  return values.map((v) => Number(v)).filter((v) => Number.isFinite(v) && v > 0);
 }
 
 const Index = () => {
@@ -86,9 +91,42 @@ const Index = () => {
   const overview = adaptOverview(overviewQuery.data);
   const latestOnly = adaptOverview({ latest: latestBaleQuery.data }).latest;
 
+    const latestCyclesQuery = useQuery({
+    queryKey: ["latest-cycles", latestOnly?.rawId],
+    queryFn: () => fetchCycles(latestOnly!.rawId),
+    enabled: !!latestOnly?.rawId,
+    refetchInterval: 5000,
+    retry: 2,
+  });
+
+  const latestPressureQuery = useQuery({
+    queryKey: ["latest-pressure", latestOnly?.rawId],
+    queryFn: () => fetchPressure(latestOnly!.rawId),
+    enabled: !!latestOnly?.rawId,
+    refetchInterval: 5000,
+    retry: 2,
+  });
+
   const stats = overview.stats;
   const materials = overview.materials;
   const recent24h = overview.stats.recent24h;
+
+  const latestCycles = Array.isArray(latestCyclesQuery.data?.cycles) ? latestCyclesQuery.data.cycles : [];
+  const latestPressure = Array.isArray(latestPressureQuery.data?.pressure) ? latestPressureQuery.data.pressure : [];
+
+  const totalRamStrokes = latestCycles
+    .filter((item: any) => item?.label === "Ram Forward")
+    .reduce((sum: number, item: any) => sum + (Array.isArray(item?.values) ? item.values.length : 0), 0);
+
+  const maxHighPressure = latestPressure.reduce((max: number, item: any) => {
+    const vals = nonZeroValues(item?.highPressure);
+    return vals.length ? Math.max(max, Math.max(...vals)) : max;
+  }, 0);
+
+  const maxChannelPressure = latestPressure.reduce((max: number, item: any) => {
+    const vals = nonZeroValues(item?.channelPressure);
+    return vals.length ? Math.max(max, Math.max(...vals)) : max;
+  }, 0);
 
   if (overviewQuery.isPending || latestBaleQuery.isPending) {
     return (
@@ -206,7 +244,13 @@ const Index = () => {
                 ["Total Time", `${latestOnly.totalTime.toFixed(2)} s`],
                 ["Auto Time", `${latestOnly.autoTime.toFixed(2)} s`],
                 ["Standby Time", `${latestOnly.standbyTime.toFixed(2)} s`],
-                ["Operator", latestOnly.username || "—"],
+                ["Empty Time", `${latestOnly.emptyTime.toFixed(2)} s`],
+                ["Max High Pressure", maxHighPressure || "—"],
+                ["Max Channel Pressure", maxChannelPressure || "—"],
+                ["Total Ram Strokes", totalRamStrokes],
+                ["Oil Temperature", `${(latestOnly.oilTemperature ?? 0).toFixed(2)} °C`],
+                ["Oil Level", (latestOnly.oilLevel ?? 0).toFixed(2)],
+                ["Knots V", latestOnly.knotsVertical],
               ].map(([label, val]) => (
                 <div key={label as string}>
                   <p className="text-muted-foreground">{label}</p>
@@ -221,14 +265,24 @@ const Index = () => {
           <h3 className="text-lg font-semibold text-foreground mb-4">Material Breakdown</h3>
           <div className="space-y-3">
             {materials.map((m) => (
-              <div key={m.materialName} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div>
+              <div key={m.materialName} className="flex items-start justify-between p-3 bg-muted/30 rounded-lg gap-4">
+                <div className="space-y-1">
                   <p className="font-medium text-foreground">{m.materialName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Avg weight: {m.avgWeight.toFixed(2)} kg · Avg length: {m.avgLength.toFixed(2)} mm
-                  </p>
+
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>Avg weight: {m.avgWeight.toFixed(2)} kg · Total weight: {Math.round(m.totalWeight)} kg</p>
+                    <p>Avg length: {m.avgLength.toFixed(2)} mm · Total length: {(m.totalLength / 1000).toFixed(2)} m</p>
+                    <p>Avg kWh: {m.avgKwh.toFixed(2)} · Total kWh: {m.totalKwh.toFixed(2)}</p>
+                    <p>Avg Total Time: {m.avgTotalTime.toFixed(2)} s · Total: {(m.totalTotalTime / 3600).toFixed(2)} h</p>
+                    <p>Avg Auto Time: {m.avgAutoTime.toFixed(2)} s · Total: {(m.totalAutoTime / 3600).toFixed(2)} h</p>
+                    <p>Avg Standby Time: {m.avgStandbyTime.toFixed(2)} s · Total: {(m.totalStandbyTime / 3600).toFixed(2)} h</p>
+                    <p>Avg Empty Time: {m.avgEmptyTime.toFixed(2)} s · Total: {(m.totalEmptyTime / 3600).toFixed(2)} h</p>
+                    <p>Avg Ram Forwards: {m.avgRamForwards.toFixed(2)} · Total Ram Forwards: {m.totalRamForwards.toFixed(0)}</p>
+                    <p>Operators: {m.operators || "—"}</p>
+                  </div>
                 </div>
-                <span className="text-lg font-bold text-primary">{m.count}</span>
+
+                <span className="text-lg font-bold text-primary shrink-0">{m.count}</span>
               </div>
             ))}
             {materials.length === 0 && <p className="text-muted-foreground text-sm">No materials found</p>}

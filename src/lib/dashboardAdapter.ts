@@ -72,8 +72,32 @@ export function adaptOverview(data: OverviewApi | null | undefined) {
       .map((m) => ({
         materialName: m.material_name ?? "Unknown",
         count: Number(m.count ?? 0),
+
         avgWeight: Number(m.avg_weight ?? 0),
+        totalWeight: Number(m.total_weight ?? 0),
+
         avgLength: Number(m.avg_length ?? 0),
+        totalLength: Number(m.total_length ?? 0),
+
+        avgKwh: Number(m.avg_kwh ?? 0),
+        totalKwh: Number(m.total_kwh ?? 0),
+
+        avgTotalTime: Number(m.avg_total_time ?? 0),
+        totalTotalTime: Number(m.total_total_time ?? 0),
+
+        avgAutoTime: Number(m.avg_auto_time ?? 0),
+        totalAutoTime: Number(m.total_auto_time ?? 0),
+
+        avgStandbyTime: Number(m.avg_standby_time ?? 0),
+        totalStandbyTime: Number(m.total_standby_time ?? 0),
+
+        avgEmptyTime: Number(m.avg_empty_time ?? 0),
+        totalEmptyTime: Number(m.total_empty_time ?? 0),
+
+        avgRamForwards: Number(m.avg_ram_forwards ?? 0),
+        totalRamForwards: Number(m.total_ram_forwards ?? 0),
+
+        operators: m.operators ?? "—",
       })),
   };
 }
