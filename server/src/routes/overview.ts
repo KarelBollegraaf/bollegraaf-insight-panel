@@ -8,7 +8,6 @@ overviewRouter.get("/", async (req, res) => {
     const from = typeof req.query.from === "string" ? req.query.from : null;
     const to = typeof req.query.to === "string" ? req.query.to : null;
 
-    // Latest bale within selected timeframe
     const [latestRows]: any = await pool.query(
       `
       SELECT *
@@ -21,7 +20,6 @@ overviewRouter.get("/", async (req, res) => {
       [from, from, to, to]
     );
 
-    // Summary stats within selected timeframe
     const [statsRows]: any = await pool.query(
       `
       SELECT
@@ -43,7 +41,6 @@ overviewRouter.get("/", async (req, res) => {
       [from, from, to, to]
     );
 
-    // Material breakdown within selected timeframe
     const [materialRows]: any = await pool.query(
       `
       SELECT
@@ -60,7 +57,6 @@ overviewRouter.get("/", async (req, res) => {
       [from, from, to, to]
     );
 
-    // Recent 24h bale count stays separate
     const [recent24h]: any = await pool.query(`
       SELECT COUNT(*) as count
       FROM bale_cycle

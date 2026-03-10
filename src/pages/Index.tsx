@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adaptOverview } from "@/lib/dashboardAdapter";
+import { fetchLatestBale, fetchOverviewWithRange } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Package, Activity, Gauge, Zap, Thermometer, Droplets, Clock, Weight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function MetricCard({ title, value, unit, icon: Icon, variant = "default" }: {
+function MetricCard({
+  title,
+  value,
+  unit,
+  icon: Icon,
+  variant = "default",
+}: {
   title: string;
   value: string | number;
   unit?: string;
@@ -40,46 +47,38 @@ const Index = () => {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  function getQueryString() {
+  const range = useMemo(() => {
     if (preset === "custom" && from && to) {
-      const fromIso = new Date(from).toISOString();
-      const toIso = new Date(to).toISOString();
-      return `from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}`;
+      return {
+        from: new Date(from).toISOString(),
+        to: new Date(to).toISOString(),
+      };
     }
 
     const now = new Date();
-    const start = new Date();
+    const start = new Date(now);
 
     if (preset === "last24h") start.setDate(now.getDate() - 1);
     else if (preset === "last7d") start.setDate(now.getDate() - 7);
     else if (preset === "last30d") start.setDate(now.getDate() - 30);
     else if (preset === "last365d") start.setDate(now.getDate() - 365);
 
-    return `from=${encodeURIComponent(start.toISOString())}&to=${encodeURIComponent(now.toISOString())}`;
-  }
+    return {
+      from: start.toISOString(),
+      to: now.toISOString(),
+    };
+  }, [preset, from, to]);
 
   const overviewQuery = useQuery({
-    queryKey: ["overview", preset, from, to],
-    queryFn: async () => {
-      const res = await fetch(`/api/overview?${getQueryString()}`, {
-        cache: "no-store",
-      });
-      if (!res.ok) throw new Error("Failed to load overview");
-      return res.json();
-    },
+    queryKey: ["overview", preset, from, to, range.from, range.to],
+    queryFn: () => fetchOverviewWithRange(range.from, range.to),
     refetchInterval: 10000,
     retry: 2,
   });
 
   const latestBaleQuery = useQuery({
     queryKey: ["latest-bale"],
-    queryFn: async () => {
-      const res = await fetch("/api/latest-bale", {
-        cache: "no-store",
-      });
-      if (!res.ok) throw new Error("Failed to load latest bale");
-      return res.json();
-    },
+    queryFn: () => fetchLatestBale(),
     refetchInterval: 5000,
     retry: 2,
   });
@@ -91,7 +90,7 @@ const Index = () => {
   const materials = overview.materials;
   const recent24h = overview.stats.recent24h;
 
-  if (overviewQuery.isLoading || latestBaleQuery.isLoading) {
+  if (overviewQuery.isPending || latestBaleQuery.isPending) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -103,15 +102,11 @@ const Index = () => {
     );
   }
 
-  const hasNoData = !overviewQuery.data && !latestBaleQuery.data;
-
-  if (hasNoData) {
+  if (overviewQuery.error && latestBaleQuery.error) {
     return (
       <Card className="p-8 text-center border-2 border-status-error/30">
         <p className="text-status-error font-semibold mb-2">Failed to connect to API</p>
-        <p className="text-sm text-muted-foreground">
-          Check the backend and database connection.
-        </p>
+        <p className="text-sm text-muted-foreground">Check the backend and database connection.</p>
       </Card>
     );
   }
@@ -126,7 +121,8 @@ const Index = () => {
               {latestOnly?.customerNumber || "Baler"} — {latestOnly?.materialName || "No data"}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Latest bale #{latestOnly?.baleNumber ?? 0} · {latestOnly?.ts ? new Date(latestOnly.ts).toLocaleString() : "—"}
+              Latest bale #{latestOnly?.baleNumber ?? 0} ·{" "}
+              {latestOnly?.ts ? new Date(latestOnly.ts).toLocaleString() : "—"}
             </p>
           </div>
         </div>
@@ -181,7 +177,12 @@ const Index = () => {
         <MetricCard title="Avg Weight" value={stats.avgWeight.toFixed(2)} unit="kg" icon={Weight} />
         <MetricCard title="Avg Bale Length" value={stats.avgBaleLength.toFixed(2)} unit="mm" icon={Gauge} />
         <MetricCard title="Avg Volume" value={stats.avgVolume.toFixed(2)} unit="m³" icon={Package} />
-        <MetricCard title="Oil Temperature" value={(latestOnly?.oilTemperature ?? 0).toFixed(2)} unit="°C" icon={Thermometer} />
+        <MetricCard
+          title="Oil Temperature"
+          value={(latestOnly?.oilTemperature ?? 0).toFixed(2)}
+          unit="°C"
+          icon={Thermometer}
+        />
         <MetricCard title="Oil Level" value={(latestOnly?.oilLevel ?? 0).toFixed(2)} icon={Droplets} />
       </div>
 
@@ -230,9 +231,7 @@ const Index = () => {
                 <span className="text-lg font-bold text-primary">{m.count}</span>
               </div>
             ))}
-            {materials.length === 0 && (
-              <p className="text-muted-foreground text-sm">No materials found</p>
-            )}
+            {materials.length === 0 && <p className="text-muted-foreground text-sm">No materials found</p>}
           </div>
         </Card>
       </div>
@@ -248,7 +247,9 @@ const Index = () => {
           ].map(([label, val, unit]) => (
             <div key={label} className="text-center p-3 bg-muted/30 rounded-lg">
               <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="text-xl font-bold text-foreground">{val} <span className="text-sm font-normal">{unit}</span></p>
+              <p className="text-xl font-bold text-foreground">
+                {val} <span className="text-sm font-normal">{unit}</span>
+              </p>
             </div>
           ))}
         </div>

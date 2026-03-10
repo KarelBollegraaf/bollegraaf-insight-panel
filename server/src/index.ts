@@ -6,7 +6,7 @@ import { rawRouter } from "./routes/raw.js";
 import { eventsRouter } from "./routes/events.js";
 import { cyclesRouter } from "./routes/cycles.js";
 import { pressureRouter } from "./routes/pressure.js";
-import latestBaleRouter from "./routes/latest-bale";
+import latestBaleRouter from "./routes/latest-bale.js";
 
 const app = express();
 const PORT = Number(process.env.API_PORT) || 3001;
