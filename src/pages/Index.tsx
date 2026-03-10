@@ -210,8 +210,9 @@ const Index = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard title="Total Bales" value={stats.totalBales} icon={Package} variant="primary" />
-        <MetricCard title="Last 24h" value={recent24h} icon={Activity} />
         <MetricCard title="Total Energy" value={stats.totalKwh.toFixed(2)} unit="kWh" icon={Zap} variant="success" />
+        <MetricCard title="Total Time" value={(stats.sumTotalTime / 3600).toFixed(2)} unit="hrs" icon={Clock} variant="default" />
+        <MetricCard title="Auto Time" value={(stats.sumAutoTime / 3600).toFixed(2)} unit="hrs" icon={Clock} variant="default" />
         <MetricCard title="Avg Weight" value={stats.avgWeight.toFixed(2)} unit="kg" icon={Weight} />
         <MetricCard title="Avg Bale Length" value={stats.avgBaleLength.toFixed(2)} unit="mm" icon={Gauge} />
         <MetricCard title="Avg Volume" value={stats.avgVolume.toFixed(2)} unit="m³" icon={Package} />
@@ -221,7 +222,6 @@ const Index = () => {
           unit="°C"
           icon={Thermometer}
         />
-        <MetricCard title="Oil Level" value={(latestOnly?.oilLevel ?? 0).toFixed(2)} icon={Droplets} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -262,30 +262,57 @@ const Index = () => {
         )}
 
         <Card className="p-6 border-2 border-card-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Material Breakdown</h3>
-          <div className="space-y-3">
-            {materials.map((m) => (
-              <div key={m.materialName} className="flex items-start justify-between p-3 bg-muted/30 rounded-lg gap-4">
-                <div className="space-y-1">
-                  <p className="font-medium text-foreground">{m.materialName}</p>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Material Breakdown - Time Frame</h3>
 
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <p>Avg weight: {m.avgWeight.toFixed(2)} kg · Total weight: {Math.round(m.totalWeight)} kg</p>
-                    <p>Avg length: {m.avgLength.toFixed(2)} mm · Total length: {(m.totalLength / 1000).toFixed(2)} m</p>
-                    <p>Avg kWh: {m.avgKwh.toFixed(2)} · Total kWh: {m.totalKwh.toFixed(2)}</p>
-                    <p>Avg Total Time: {m.avgTotalTime.toFixed(2)} s · Total: {(m.totalTotalTime / 3600).toFixed(2)} h</p>
-                    <p>Avg Auto Time: {m.avgAutoTime.toFixed(2)} s · Total: {(m.totalAutoTime / 3600).toFixed(2)} h</p>
-                    <p>Avg Standby Time: {m.avgStandbyTime.toFixed(2)} s · Total: {(m.totalStandbyTime / 3600).toFixed(2)} h</p>
-                    <p>Avg Empty Time: {m.avgEmptyTime.toFixed(2)} s · Total: {(m.totalEmptyTime / 3600).toFixed(2)} h</p>
-                    <p>Avg Ram Forwards: {m.avgRamForwards.toFixed(2)} · Total Ram Forwards: {m.totalRamForwards.toFixed(0)}</p>
-                    <p>Operators: {m.operators || "—"}</p>
-                  </div>
+          <div className="space-y-4">
+            {materials.map((m) => (
+              <Card key={m.materialName} className="p-4 bg-muted/30">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="font-medium text-foreground">{m.materialName}</p>
+                  <span className="text-lg font-bold text-primary">{m.count}</span>
                 </div>
 
-                <span className="text-lg font-bold text-primary shrink-0">{m.count}</span>
-              </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {[
+                    ["Avg Weight", `${m.avgWeight.toFixed(2)} kg`],
+                    ["Total Weight", `${Math.round(m.totalWeight)} kg`],
+
+                    ["Avg Length", `${m.avgLength.toFixed(2)} mm`],
+                    ["Total Length", `${(m.totalLength / 1000).toFixed(2)} m`],
+
+                    ["Avg kWh", m.avgKwh.toFixed(2)],
+                    ["Total kWh", m.totalKwh.toFixed(2)],
+
+                    ["Avg Total Time", `${m.avgTotalTime.toFixed(2)} s`],
+                    ["Total Time", `${(m.totalTotalTime / 3600).toFixed(2)} h`],
+
+                    ["Avg Auto Time", `${m.avgAutoTime.toFixed(2)} s`],
+                    ["Total Auto Time", `${(m.totalAutoTime / 3600).toFixed(2)} h`],
+
+                    ["Avg Standby Time", `${m.avgStandbyTime.toFixed(2)} s`],
+                    ["Total Standby Time", `${(m.totalStandbyTime / 3600).toFixed(2)} h`],
+
+                    ["Avg Empty Time", `${m.avgEmptyTime.toFixed(2)} s`],
+                    ["Total Empty Time", `${(m.totalEmptyTime / 3600).toFixed(2)} h`],
+
+                    ["Avg Ram Strokes", m.avgRamForwards.toFixed(2)],
+                    ["Total Ram Strokes", m.totalRamForwards.toFixed(0)],
+
+                    ["Operators", m.operators || "—"],
+                    ["Bales", m.count],
+                  ].map(([label, val]) => (
+                    <div key={label}>
+                      <p className="text-muted-foreground">{label}</p>
+                      <p className="font-semibold text-foreground">{val}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
             ))}
-            {materials.length === 0 && <p className="text-muted-foreground text-sm">No materials found</p>}
+
+            {materials.length === 0 && (
+              <p className="text-muted-foreground text-sm">No materials found</p>
+            )}
           </div>
         </Card>
       </div>
