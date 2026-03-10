@@ -12,17 +12,36 @@ import type {
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`);
+  const res = await fetch(`${API_BASE}${url}`, {
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
+  });
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(body.error || `API error ${res.status}`);
   }
+
   return res.json();
 }
 
 // Overview
 export function fetchOverview(): Promise<OverviewData> {
   return fetchJson("/overview");
+}
+
+export function fetchOverviewWithRange(from: string, to: string): Promise<OverviewData> {
+  const sp = new URLSearchParams();
+  sp.set("from", from);
+  sp.set("to", to);
+  return fetchJson(`/overview?${sp.toString()}`);
+}
+
+export function fetchLatestBale(): Promise<BaleCycle | null> {
+  return fetchJson("/latest-bale");
 }
 
 // Bales

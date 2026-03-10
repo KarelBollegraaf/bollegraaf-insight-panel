@@ -61,21 +61,27 @@ const Index = () => {
   const overviewQuery = useQuery({
     queryKey: ["overview", preset, from, to],
     queryFn: async () => {
-      const res = await fetch(`/api/overview?${getQueryString()}`);
+      const res = await fetch(`/api/overview?${getQueryString()}`, {
+        cache: "no-store",
+      });
       if (!res.ok) throw new Error("Failed to load overview");
       return res.json();
     },
     refetchInterval: 10000,
+    retry: 2,
   });
 
   const latestBaleQuery = useQuery({
     queryKey: ["latest-bale"],
     queryFn: async () => {
-      const res = await fetch("/api/latest-bale");
+      const res = await fetch("/api/latest-bale", {
+        cache: "no-store",
+      });
       if (!res.ok) throw new Error("Failed to load latest bale");
       return res.json();
     },
     refetchInterval: 5000,
+    retry: 2,
   });
 
   const overview = adaptOverview(overviewQuery.data);
@@ -84,17 +90,6 @@ const Index = () => {
   const stats = overview.stats;
   const materials = overview.materials;
   const recent24h = overview.stats.recent24h;
-
-  if (overviewQuery.error || latestBaleQuery.error) {
-    return (
-      <Card className="p-8 text-center border-2 border-status-error/30">
-        <p className="text-status-error font-semibold mb-2">Failed to connect to API</p>
-        <p className="text-sm text-muted-foreground">
-          Check the backend and database connection.
-        </p>
-      </Card>
-    );
-  }
 
   if (overviewQuery.isLoading || latestBaleQuery.isLoading) {
     return (
@@ -105,6 +100,19 @@ const Index = () => {
           ))}
         </div>
       </div>
+    );
+  }
+
+  const hasNoData = !overviewQuery.data && !latestBaleQuery.data;
+
+  if (hasNoData) {
+    return (
+      <Card className="p-8 text-center border-2 border-status-error/30">
+        <p className="text-status-error font-semibold mb-2">Failed to connect to API</p>
+        <p className="text-sm text-muted-foreground">
+          Check the backend and database connection.
+        </p>
+      </Card>
     );
   }
 
