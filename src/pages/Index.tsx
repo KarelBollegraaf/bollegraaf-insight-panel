@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchOverview } from "@/lib/api";
+import { adaptOverview } from "@/lib/dashboardAdapter";
 import { Card } from "@/components/ui/card";
 import { Package, Activity, Gauge, Zap, Thermometer, Droplets, Clock, Weight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,25 +36,67 @@ function MetricCard({ title, value, unit, icon: Icon, variant = "default" }: {
 }
 
 const Index = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["overview"],
-    queryFn: fetchOverview,
+  const [preset, setPreset] = useState("last7d");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  function getQueryString() {
+    if (preset === "custom" && from && to) {
+      const fromIso = new Date(from).toISOString();
+      const toIso = new Date(to).toISOString();
+      return `from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}`;
+    }
+
+    const now = new Date();
+    const start = new Date();
+
+    if (preset === "last24h") start.setDate(now.getDate() - 1);
+    else if (preset === "last7d") start.setDate(now.getDate() - 7);
+    else if (preset === "last30d") start.setDate(now.getDate() - 30);
+    else if (preset === "last365d") start.setDate(now.getDate() - 365);
+
+    return `from=${encodeURIComponent(start.toISOString())}&to=${encodeURIComponent(now.toISOString())}`;
+  }
+
+  const overviewQuery = useQuery({
+    queryKey: ["overview", preset, from, to],
+    queryFn: async () => {
+      const res = await fetch(`/api/overview?${getQueryString()}`);
+      if (!res.ok) throw new Error("Failed to load overview");
+      return res.json();
+    },
     refetchInterval: 10000,
   });
 
-  if (error) {
+  const latestBaleQuery = useQuery({
+    queryKey: ["latest-bale"],
+    queryFn: async () => {
+      const res = await fetch("/api/latest-bale");
+      if (!res.ok) throw new Error("Failed to load latest bale");
+      return res.json();
+    },
+    refetchInterval: 5000,
+  });
+
+  const overview = adaptOverview(overviewQuery.data);
+  const latestOnly = adaptOverview({ latest: latestBaleQuery.data }).latest;
+
+  const stats = overview.stats;
+  const materials = overview.materials;
+  const recent24h = overview.stats.recent24h;
+
+  if (overviewQuery.error || latestBaleQuery.error) {
     return (
       <Card className="p-8 text-center border-2 border-status-error/30">
         <p className="text-status-error font-semibold mb-2">Failed to connect to API</p>
         <p className="text-sm text-muted-foreground">
-          Ensure the backend server is running at{" "}
-          <code className="bg-muted px-2 py-1 rounded text-xs">{import.meta.env.VITE_API_URL || "http://localhost:3001/api"}</code>
+          Check the backend and database connection.
         </p>
       </Card>
     );
   }
 
-  if (isLoading || !data) {
+  if (overviewQuery.isLoading || latestBaleQuery.isLoading) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -65,41 +108,77 @@ const Index = () => {
     );
   }
 
-  const { latest, stats, materials, recent24h } = data;
-
   return (
     <div className="space-y-6">
-      {/* Machine badge */}
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4">
         <div className="flex items-center gap-3">
           <Package className="h-6 w-6 text-primary" />
           <div>
             <h2 className="text-lg font-bold text-foreground">
-              {latest?.customer_number || "Baler"} — {latest?.material_name || "No data"}
+              {latestOnly?.customerNumber || "Baler"} — {latestOnly?.materialName || "No data"}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Latest bale #{latest?.bale_number} · {latest ? new Date(latest.ts).toLocaleString() : "—"}
+              Latest bale #{latestOnly?.baleNumber ?? 0} · {latestOnly?.ts ? new Date(latestOnly.ts).toLocaleString() : "—"}
             </p>
           </div>
         </div>
       </div>
 
-      {/* KPI grid */}
+      <Card className="p-4 border-2 border-card-border">
+        <div className="flex flex-col md:flex-row gap-4 md:items-end">
+          <div>
+            <label className="text-sm text-muted-foreground block mb-1">Timeframe</label>
+            <select
+              value={preset}
+              onChange={(e) => setPreset(e.target.value)}
+              className="bg-background border rounded px-3 py-2"
+            >
+              <option value="last24h">Last 24 hours</option>
+              <option value="last7d">Last week</option>
+              <option value="last30d">Last month</option>
+              <option value="last365d">Last year</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+
+          {preset === "custom" && (
+            <>
+              <div>
+                <label className="text-sm text-muted-foreground block mb-1">From</label>
+                <input
+                  type="datetime-local"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="bg-background border rounded px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground block mb-1">To</label>
+                <input
+                  type="datetime-local"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  className="bg-background border rounded px-3 py-2"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard title="Total Bales" value={stats?.total_bales ?? 0} icon={Package} variant="primary" />
+        <MetricCard title="Total Bales" value={stats.totalBales} icon={Package} variant="primary" />
         <MetricCard title="Last 24h" value={recent24h} icon={Activity} />
-        <MetricCard title="Total Energy" value={(stats?.total_kwh ?? 0).toFixed(2)} unit="kWh" icon={Zap} variant="success" />
-        <MetricCard title="Avg Weight" value={(stats?.avg_weight ?? 0).toFixed(2)} unit="kg" icon={Weight} />
-        <MetricCard title="Avg Bale Length" value={(stats?.avg_bale_length ?? 0).toFixed(2)} unit="cm" icon={Gauge} />
-        <MetricCard title="Avg Volume" value={(stats?.avg_volume ?? 0).toFixed(2)} unit="m³" icon={Package} />
-        <MetricCard title="Oil Temperature" value={(latest?.oil_temperature ?? 0).toFixed(2)} unit="°C" icon={Thermometer} />
-        <MetricCard title="Oil Level" value={(latest?.oil_level ?? 0).toFixed(2)} icon={Droplets} />
+        <MetricCard title="Total Energy" value={stats.totalKwh.toFixed(2)} unit="kWh" icon={Zap} variant="success" />
+        <MetricCard title="Avg Weight" value={stats.avgWeight.toFixed(2)} unit="kg" icon={Weight} />
+        <MetricCard title="Avg Bale Length" value={stats.avgBaleLength.toFixed(2)} unit="mm" icon={Gauge} />
+        <MetricCard title="Avg Volume" value={stats.avgVolume.toFixed(2)} unit="m³" icon={Package} />
+        <MetricCard title="Oil Temperature" value={(latestOnly?.oilTemperature ?? 0).toFixed(2)} unit="°C" icon={Thermometer} />
+        <MetricCard title="Oil Level" value={(latestOnly?.oilLevel ?? 0).toFixed(2)} icon={Droplets} />
       </div>
 
-      {/* Latest bale detail + materials */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Latest bale */}
-        {latest && (
+        {latestOnly && (
           <Card className="p-6 border-2 border-card-border">
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
@@ -107,18 +186,18 @@ const Index = () => {
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               {[
-                ["Bale Number", latest.bale_number],
-                ["Material", latest.material_name],
-                ["Recipe", latest.recipe_number],
-                ["Shift", latest.shift_number],
-                ["Weight", `${latest.weight?.toFixed(2)} kg`],
-                ["Volume", `${latest.volume?.toFixed(2)} m³`],
-                ["Length", `${latest.bale_length?.toFixed(2)} cm`],
-                ["kWh", latest.kwh_used?.toFixed(2)],
-                ["Total Time", `${latest.total_time?.toFixed(2)} s`],
-                ["Auto Time", `${latest.auto_time?.toFixed(2)} s`],
-                ["Standby Time", `${latest.standby_time?.toFixed(2)} s`],
-                ["Operator", latest.username || "—"],
+                ["Bale Number", latestOnly.baleNumber],
+                ["Material", latestOnly.materialName],
+                ["Recipe", latestOnly.recipeNumber],
+                ["Shift", latestOnly.shiftNumber],
+                ["Weight", `${latestOnly.weight.toFixed(2)} kg`],
+                ["Volume", `${latestOnly.volume.toFixed(2)} m³`],
+                ["Length", `${latestOnly.baleLength.toFixed(2)} mm`],
+                ["kWh", latestOnly.kwhUsed.toFixed(2)],
+                ["Total Time", `${latestOnly.totalTime.toFixed(2)} s`],
+                ["Auto Time", `${latestOnly.autoTime.toFixed(2)} s`],
+                ["Standby Time", `${latestOnly.standbyTime.toFixed(2)} s`],
+                ["Operator", latestOnly.username || "—"],
               ].map(([label, val]) => (
                 <div key={label as string}>
                   <p className="text-muted-foreground">{label}</p>
@@ -129,16 +208,15 @@ const Index = () => {
           </Card>
         )}
 
-        {/* Materials */}
         <Card className="p-6 border-2 border-card-border">
           <h3 className="text-lg font-semibold text-foreground mb-4">Material Breakdown</h3>
           <div className="space-y-3">
             {materials.map((m) => (
-              <div key={m.material_name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div key={m.materialName} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                 <div>
-                  <p className="font-medium text-foreground">{m.material_name}</p>
+                  <p className="font-medium text-foreground">{m.materialName}</p>
                   <p className="text-xs text-muted-foreground">
-                    Avg weight: {m.avg_weight?.toFixed(2)} kg · Avg length: {m.avg_length?.toFixed(2)} cm
+                    Avg weight: {m.avgWeight.toFixed(2)} kg · Avg length: {m.avgLength.toFixed(2)} mm
                   </p>
                 </div>
                 <span className="text-lg font-bold text-primary">{m.count}</span>
@@ -151,25 +229,22 @@ const Index = () => {
         </Card>
       </div>
 
-      {/* Time summary */}
-      {stats && (
-        <Card className="p-6 border-2 border-card-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Time Summary</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              ["Total Time", (stats.sum_total_time / 3600).toFixed(2), "hrs"],
-              ["Auto Time", (stats.sum_auto_time / 3600).toFixed(2), "hrs"],
-              ["Standby Time", (stats.sum_standby_time / 3600).toFixed(2), "hrs"],
-              ["Empty Time", (stats.sum_empty_time / 3600).toFixed(2), "hrs"],
-            ].map(([label, val, unit]) => (
-              <div key={label} className="text-center p-3 bg-muted/30 rounded-lg">
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="text-xl font-bold text-foreground">{val} <span className="text-sm font-normal">{unit}</span></p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      <Card className="p-6 border-2 border-card-border">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Time Summary</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            ["Total Time", (stats.sumTotalTime / 3600).toFixed(2), "hrs"],
+            ["Auto Time", (stats.sumAutoTime / 3600).toFixed(2), "hrs"],
+            ["Standby Time", (stats.sumStandbyTime / 3600).toFixed(2), "hrs"],
+            ["Empty Time", (stats.sumEmptyTime / 3600).toFixed(2), "hrs"],
+          ].map(([label, val, unit]) => (
+            <div key={label} className="text-center p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="text-xl font-bold text-foreground">{val} <span className="text-sm font-normal">{unit}</span></p>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 };
