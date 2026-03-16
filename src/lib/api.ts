@@ -9,8 +9,10 @@ import type {
   ParsedPressure,
 } from "@/types/database";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
-
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  `${window.location.protocol}//${window.location.hostname}:3001/api`;
+  
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(`${API_BASE}${url}`, {
     cache: "no-store",
