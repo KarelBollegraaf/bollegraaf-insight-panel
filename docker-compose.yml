@@ -2,9 +2,9 @@ version: "2.4"
 
 services:
   dashboard:
-    image: "bollegraaf-insight-panel:0.0.4"
+    image: "bollegraaf-insight-panel:1.1.2"
     container_name: dashboard
-    restart: always
+    restart: unless-stopped
     environment:
       DB_HOST: db
       DB_PORT: 3306
@@ -19,6 +19,11 @@ services:
     mem_reservation: 250m
     networks:
       - proxy-redirect
+    volumes:
+      - dashboard-data:/data
+
+volumes:
+  dashboard-data:
 
 networks:
   proxy-redirect:
